@@ -1,0 +1,6 @@
+{
+  "name": "AI Music Video Creator",
+  "description": "100% Client-Side MP3 to Music Video Creator using WebCodecs and WebAudio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
