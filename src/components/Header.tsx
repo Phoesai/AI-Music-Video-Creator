@@ -1,8 +1,44 @@
-import React, { useState } from 'react';
-import { Disc, HelpCircle, X, Music, Palette, Play, Film } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Disc, HelpCircle, X, Music, Palette, Play, Film, Download } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const [showHelp, setShowHelp] = useState<boolean>(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isInstalled, setIsInstalled] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone) {
+      setIsInstalled(true);
+    }
+
+    const handleBeforeInstall = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setIsInstalled(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   return (
     <header className="w-full bg-[#0f172a] border-b border-[#1e293b] sticky top-0 z-40 px-4 py-4 sm:px-8 shadow-md">
@@ -24,6 +60,19 @@ export const Header: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-3 self-end sm:self-center">
+          {deferredPrompt && !isInstalled && (
+            <button
+              type="button"
+              onClick={handleInstallClick}
+              id="btn-pwa-install"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-slate-950 font-bold text-xs shadow-md transition-all transform active:scale-95 cursor-pointer"
+              title="Install App as PWA"
+            >
+              <Download className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Install App</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => setShowHelp(!showHelp)}
